@@ -1,0 +1,7 @@
+This project implements the mini java compiler.
+It is divided into some subparts.
+
+----------------------------------------------
+			Part 1
+----------------------------------------------
+converts a macrojava file to minijava if the macrojava file is parsed without any error.
