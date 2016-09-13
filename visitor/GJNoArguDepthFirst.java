@@ -1083,7 +1083,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    		if (cl.equals("this")) {
    			cl = currentClass;
    		}
-   		System.out.println("cl name "+cl);
+   		// System.out.println("cl name "+cl);
    		if (cl == null || fn == null) {
    			System.out.println("null data;");
    		}
