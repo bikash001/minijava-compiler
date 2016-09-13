@@ -814,10 +814,10 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
     */
    public R visit(MessageSend n) {
       R _ret=null;
-      int temp = expn;
-      expn = 0;
       String obj = (String)n.f0.accept(this);
       n.f1.accept(this);
+      int temp = expn;
+      expn = 0;
       String fn = (String)n.f2.accept(this);
       expn = temp;
       if (!init) {
@@ -1090,7 +1090,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    		ClassMeta cm = classList.get(cl);
    		if (cm == null) {
    			System.out.println(classList.keySet().toString());
-   			System.out.println("null cm;");
+   			System.out.println("null cm; "+cl);
    		}
    		String pt = cm.getParent();
    		if (pt == null) {
