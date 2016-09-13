@@ -17,18 +17,16 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
 	private HashMap<String,String> stackFrame;
 	private String currentClass;
 	private String currentFunction;
-	private int param;
-	private String pClass, pFunc;
 	private int expn;
-  private Stack<String> paramFunction;
+  private Stack<String> paramFunction, paramClass;
+  private Stack<Integer> pCount;
 	public GJNoArguDepthFirst() {
 		init = true;
-		param = 1;
 		expn = 0;
-		pClass = "";
-		pFunc = "";
 		currentClass = "";
 		currentFunction = "";
+    pCount = new Stack<Integer>();
+    paramClass = new Stack<String>();
     paramFunction = new Stack<String>();
 		stackFrame = new HashMap<String,String>();
 		classList = new HashMap<String,ClassMeta>();
@@ -823,31 +821,26 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       String fn = (String)n.f2.accept(this);
       expn = temp;
       if (!init) {
-      	pClass = obj;
-      	// pFunc = fn;
+        paramClass.push(obj);
         paramFunction.push(fn);
-      	// System.out.println("ye "+pClass+" "+pFunc);
+        pCount.push(0);
       }
-      param = 0;
       n.f3.accept(this);
       n.f4.accept(this);
       n.f5.accept(this);
       if (!init) {
         // System.out.println("l833 "+pClass+" "+pFunc);
-      	FuncMeta fm = getFunc(pClass,paramFunction.peek());
-      	if (!fm.totalPmEquals(param)) {
+      	FuncMeta fm = getFunc(paramClass.peek(),paramFunction.peek());
+      	if (!fm.totalPmEquals(pCount.peek())) {
       		System.out.println("type error 839");
       		System.exit(0);
       	}
       	_ret = (R)fm.getRtn();
         paramFunction.pop();
+        paramClass.pop();
+        pCount.pop();
       	// System.out.println("l824 "+(String)_ret);
       }
-      param = 0;
-      pFunc = "";
-      // if (!init) {
-      // 	System.out.println("end l819");
-      // }
       return _ret;
    }
 
@@ -857,16 +850,18 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
     */
    public R visit(ExpressionList n) {
       R _ret=null;
+      int pm = 0;
+      if (!init) {     
+        pm = pCount.pop() + 1;
+        pCount.push(pm);
+      }
       _ret = n.f0.accept(this);
       n.f1.accept(this);
       if (!init) {
-        pFunc = paramFunction.peek();
-        // System.out.println("l859 "+pClass+" "+pFunc);
       	String tp = (String)_ret;
-      	FuncMeta fm = getFunc(pClass,pFunc);
-        if (!matchType(fm.getParam(++param),tp)) {
-      	// if (!tp.equals(fm.getParam(++param))) {
-      		System.out.println("type error 868 "+ tp +" " + fm.getParam(param));
+      	FuncMeta fm = getFunc(paramClass.peek(),paramFunction.peek());
+        if (!matchType(fm.getParam(pm),tp)) {
+      		System.out.println("type error 868 "+ tp +" " + fm.getParam(pm));
       		System.exit(0);
       	}
       }
@@ -882,12 +877,12 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       n.f0.accept(this);
       _ret = n.f1.accept(this);
       if (!init) {
-        pFunc = paramFunction.peek();
-      	// System.out.println("l845 "+pClass+" "+pFunc);
       	String tp = (String)_ret;
-      	FuncMeta fm = getFunc(pClass,pFunc);
-      	if (!tp.equals(fm.getParam(++param))) {
-      		System.out.println("type error 851");
+      	FuncMeta fm = getFunc(paramClass.peek(),paramFunction.peek());
+        int pm = pCount.pop() + 1;
+        pCount.push(pm);
+      	if (!matchType(fm.getParam(pm),tp)) {
+      		System.out.println("type error 890 "+pm+ " "+ tp +" " + fm.getParam(pm));
       		System.exit(0);
       	}
       }
@@ -908,9 +903,6 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    public R visit(PrimaryExpression n) {
       R _ret=null;
       _ret = n.f0.accept(this);
-      // if (!init) {
-      // 	System.out.println("l874 "+(String)_ret);
-      // }
       return _ret;
    }
 
@@ -948,10 +940,6 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       R _ret=null;
       n.f0.accept(this);
       _ret = (R)n.f0.toString();
-      // System.out.println("l921 "+(String)_ret);
-      // if (!init && (expn || (!pFunc.isEmpty()))) {
-      // 	_ret = (R)getType((String)_ret);
-      // }
       if (!init && expn > 0) {
       	_ret = (R)getType((String)_ret);
       }
@@ -984,7 +972,6 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       n.f2.accept(this);
       String tp = (String)n.f3.accept(this);
       if (!init) {
-      	// tp = getType(tp);
       	if (!tp.equals("int")) {
       		System.out.println("type error 912");
       		System.exit(0);
@@ -1081,12 +1068,6 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    }
 
    private String getType(String id) {
-   		// switch(id) {
-   		// 	case "int":
-   		// 	case "int[]":
-   		// 	case "boolean":
-   		// 		return id;
-   		// }
    		if (stackFrame.containsKey(id)) {
    			return stackFrame.get(id);
    		}
@@ -1106,22 +1087,18 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    }
 
    private FuncMeta getFunc(String cl, String fn) {
-   		// if (cl.equals("this")) {
-   		// 	cl = currentClass;
+   		// if (cl == null || fn == null) {
+   		// 	System.out.println("null data;");
    		// }
-   		// System.out.println("cl name "+cl);
-   		if (cl == null || fn == null) {
-   			System.out.println("null data;");
-   		}
    		ClassMeta cm = classList.get(cl);
-   		if (cm == null) {
-   			System.out.println(classList.keySet().toString());
-   			System.out.println("null cm; "+cl);
-   		}
+   		// if (cm == null) {
+   		// 	System.out.println(classList.keySet().toString());
+   		// 	System.out.println("null cm; "+cl);
+   		// }
    		String pt = cm.getParent();
-   		if (pt == null) {
-   			System.out.println("null pt;");
-   		}
+   		// if (pt == null) {
+   		// 	System.out.println("null pt;");
+   		// }
    		while ((!cm.containsFunc(fn)) && (!pt.isEmpty())) {
    			cm = classList.get(pt);
    			pt = cm.getParent();
