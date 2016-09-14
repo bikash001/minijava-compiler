@@ -169,7 +169,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       currentClass = (String)n.f1.accept(this);
       if (init) {
       	if (classList.containsKey(currentClass)) {
-      		System.out.println("cannot define two class of same name");
+          System.out.println("Type error");
       		System.exit(0);
       	}
       	classList.put(currentClass,new ClassMeta());
@@ -199,13 +199,13 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       String cl = (String)n.f3.accept(this);
       if (init) {
       	if (classList.containsKey(currentClass)) {
-      		System.out.println("cannot define two class of same name");
+          System.out.println("Type error");
       		System.exit(0);
       	}
       	classList.put(currentClass,new ClassMeta(cl));
       } else {
       	if (!classList.containsKey(cl)) {
-      		System.out.println("parent class doesnot exist");
+          System.out.println("Type error");
       		System.exit(0);
       	}
       }
@@ -229,14 +229,14 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
 	      if (currentFunction.isEmpty()) {
 	      	ClassMeta cm = classList.get(currentClass);
 	      	if (cm.containsId(id)) {
-	      		System.out.println("cannot declare two identifier of same name");
+          System.out.println("Type error");
 	      		System.exit(0);
 	      	}
 	      	cm.putIdType(id,tp);
 	      }
 	  } else if (!currentFunction.isEmpty()) {	//local variables
       	if (stackFrame.containsKey(id)) {
-      		System.out.println("cannot declare two identifier of same name inside same function");
+          System.out.println("Type error");
       		System.exit(0);
       	}
       	stackFrame.put(id, tp);
@@ -268,13 +268,12 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       if (init) {
 	      ClassMeta cm = classList.get(currentClass);
 	      if (cm.containsFunc(currentFunction)) {
-	      	System.out.println("Cannot define two function with same name");
+          System.out.println("Type error");
 	      	System.exit(0);
 	      } else {
 	      	cm.putFunc(currentFunction,new FuncMeta(fn));
 	      }
 	  }
-    // System.out.println("cur func "+currentClass+" "+currentFunction);
       n.f3.accept(this);
       n.f4.accept(this);
       n.f5.accept(this);
@@ -286,7 +285,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       if (!init) {
       		String typ = classList.get(currentClass).getFunc(currentFunction).getRtn();
 	      if (!rt.equals(typ)) {
-	      	System.out.println("return type error "+rt +" "+typ);
+          System.out.println("Type error");
 	      	System.exit(0);
 	      }
 	  }
@@ -321,7 +320,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       FuncMeta fm = classList.get(currentClass).getFunc(currentFunction);
       if (init) {
 	      if (fm.containsParam(id)) {
-	      	System.out.println("formal parameter cannot have two id of same name");
+          System.out.println("Type error");
 	      	System.exit(0);
 	      } else {
 	      	fm.addParam(tp);
@@ -429,7 +428,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       n.f3.accept(this);
       if (!init) {
       	if (!matchType(lt,rt)) {
-      		System.out.println("type error 438 "+lt+" "+rt);
+          System.out.println("Type error");
       		System.exit(0);
       	}
       }
@@ -456,7 +455,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       n.f6.accept(this);
       if (!init) {
       	if ((!id.equals("int[]")) || (!indx.equals("int")) || (!rt.equals("int"))) {
-      		System.out.println("type error 465");
+          System.out.println("Type error");
       		System.exit(0);
       	}
       }
@@ -487,7 +486,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       String tp = (String)n.f2.accept(this);
       if (!init) {
       	if (!tp.equals("boolean")) {
-	      	System.out.println("type error 495");
+          System.out.println("Type error");
 	      	System.exit(0);
 	     }
       }
@@ -512,7 +511,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       String tp = (String)n.f2.accept(this);
       if (!init) {
       	if (!tp.equals("boolean")) {
-	      	System.out.println("type error 518");
+          System.out.println("Type error");
 	      	System.exit(0);
 	     }
       }
@@ -537,7 +536,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       String tp = (String)n.f2.accept(this);
       if (!init) {
       	if (!tp.equals("boolean")) {
-	      	System.out.println("type error 541");
+          System.out.println("Type error");
 	      	System.exit(0);
       	}
       }
@@ -560,7 +559,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       String tp = (String)n.f2.accept(this);
       if (!init) {
       	if (!tp.equals("int")) {
-	      	System.out.println("type error 496");
+          System.out.println("Type error");
 	      	System.exit(0);
 	      }
       }
@@ -603,7 +602,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       String rt = (String)n.f2.accept(this);
       if (!init) {
       	if (!lt.equals(rt) && !lt.equals((String)_ret)) {
-      		System.out.println("type error 605");
+          System.out.println("Type error");
       		System.exit(0);
       	}
       }
@@ -622,7 +621,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       String rt = (String)n.f2.accept(this);
       if (!init) {
       	if (!lt.equals(rt) && !lt.equals((String)_ret)) {
-      		System.out.println("type error 624");
+          System.out.println("Type error");
       		System.exit(0);
       	}
       }
@@ -641,7 +640,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       String rt = (String)n.f2.accept(this);
       if (!init) {
       	if (!(lt.equals(rt) && lt.equals("int"))) {
-      		System.out.println("type error 643");
+          System.out.println("Type error");
       		System.exit(0);
       	}
       }
@@ -659,8 +658,8 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       n.f1.accept(this);
       String rt = (String)n.f2.accept(this);
       if (!init) {
-      	if (!(matchType(lt, rt) || matchType(rt,lt))) {
-      		System.out.println("type error 662");
+      	if (!lt.equals("int") && !rt.equals("int")) {
+          System.out.println("Type error");
       		System.exit(0);
       	}
       }
@@ -679,7 +678,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       String rt = (String)n.f2.accept(this);
       if (!init) {
       	if (!lt.equals(rt) && !lt.equals((String)_ret)) {
-      		System.out.println("type error 681");
+          System.out.println("Type error");
       		System.exit(0);
       	}
       }
@@ -698,7 +697,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       String rt = (String)n.f2.accept(this);
       if (!init) {
       	if (!lt.equals(rt) && !lt.equals((String)_ret)) {
-      		System.out.println("type error 700 "+lt +" "+rt);
+          System.out.println("Type error");
       		System.exit(0);
       	}
       }
@@ -717,7 +716,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       String rt = (String)n.f2.accept(this);
       if (!init) {
       	if (!lt.equals(rt) && !lt.equals((String)_ret)) {
-      		System.out.println("type error 719");
+          System.out.println("Type error");
       		System.exit(0);
       	}
       }
@@ -736,7 +735,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       String rt = (String)n.f2.accept(this);
       if (!init) {
       	if (!lt.equals(rt) && !lt.equals((String)_ret)) {
-      		System.out.println("type error 738");
+          System.out.println("Type error");
       		System.exit(0);
       	}
       }
@@ -751,13 +750,13 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
     */
    public R visit(ArrayLookup n) {
       R _ret= (R)"int";
-      String ap = (String)n.f0.accept(this);	//check if f0 is id and type is int[]
+      String ap = (String)n.f0.accept(this);
       n.f1.accept(this);
       String ip = (String)n.f2.accept(this);
       n.f3.accept(this);
       if (!init) {
       	if ((!ap.equals("int[]")) || (!ip.equals("int"))) {
-      		System.out.println("type error 763");
+          System.out.println("Type error");
       		System.exit(0);
       	}
       }
@@ -776,7 +775,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       n.f2.accept(this);
       if (!init) {
       	if (!ap.equals("int[]")) {
-      		System.out.println("type error 783");
+          System.out.println("Type error");
       		System.exit(0);
       	}
       }
@@ -810,7 +809,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       if (!init) {
       	FuncMeta fm = getFunc(paramClass.peek(),paramFunction.peek());
       	if (!fm.totalPmEquals(pCount.peek())) {
-      		System.out.println("type error 839");
+          System.out.println("Type error");
       		System.exit(0);
       	}
       	_ret = (R)fm.getRtn();
@@ -838,7 +837,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       	String tp = (String)_ret;
       	FuncMeta fm = getFunc(paramClass.peek(),paramFunction.peek());
         if (!matchType(fm.getParam(pm),tp)) {
-      		System.out.println("type error 868 "+ tp +" " + fm.getParam(pm));
+          System.out.println("Type error");
       		System.exit(0);
       	}
       }
@@ -859,7 +858,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
         int pm = pCount.pop() + 1;
         pCount.push(pm);
       	if (!matchType(fm.getParam(pm),tp)) {
-      		System.out.println("type error 890 "+pm+ " "+ tp +" " + fm.getParam(pm));
+          System.out.println("Type error");
       		System.exit(0);
       	}
       }
@@ -950,7 +949,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       String tp = (String)n.f3.accept(this);
       if (!init) {
       	if (!tp.equals("int")) {
-      		System.out.println("type error 912");
+          System.out.println("Type error");
       		System.exit(0);
       	}
       }
@@ -986,7 +985,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       String tp = (String)n.f1.accept(this);
       if (!init) {
       	if (!tp.equals("boolean")) {
-      		System.out.println("type error 912");
+          System.out.println("Type error");
       		System.exit(0);
       	}
       }
@@ -1057,7 +1056,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    		if (cm.containsId(id)) {
    			return cm.getIdType(id);
    		} else {
-   			System.out.println("id not found "+id);
+          System.out.println("Type error");
    			System.exit(0);
    			return null;
    		}
@@ -1083,7 +1082,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    		if (cm.containsFunc(fn)) {
    			return cm.getFunc(fn);
    		} else {
-   			System.out.println("function not found "+fn+" "+cl+" "+fn.isEmpty());
+          System.out.println("Type error");
    			System.exit(0);
    			return null;
    		}
@@ -1149,7 +1148,7 @@ class FuncMeta {
 	}
 	public String getParam(int x) {
 		if (x > paramList.size()) {
-			System.out.println("more parameter given");
+          System.out.println("Type error");
 			System.exit(0);
 		}
 		return paramList.get(x-1);
