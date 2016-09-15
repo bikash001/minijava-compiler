@@ -204,7 +204,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       	}
       	classList.put(currentClass,new ClassMeta(cl));
       } else {
-      	if (!classList.containsKey(cl)) {
+      	if (!classList.containsKey(cl) || checkParent(currentClass,cl)) {
           System.out.println("Type error");
       		System.exit(0);
       	}
@@ -558,6 +558,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       n.f1.accept(this);
       String tp = (String)n.f2.accept(this);
       if (!init) {
+        // System.out.println("error "+tp);
       	if (!tp.equals("int")) {
           System.out.println("Type error");
 	      	System.exit(0);
@@ -1027,6 +1028,18 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       return _ret;
    }
 
+   private boolean checkParent(String child, String parent) {
+      // System.out.println(child + " " + parent);
+      String pr = classList.get(parent).getParent();
+      while (!pr.isEmpty()) {
+        if (child.equals(pr)) {
+          return true;
+        }
+        pr = classList.get(pr).getParent();
+      }
+      return false;
+   }
+
    private boolean matchType(String lt, String rt) {
       if (classList.containsKey(rt)) {
         String parent = classList.get(rt).getParent();
@@ -1056,7 +1069,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    		if (cm.containsId(id)) {
    			return cm.getIdType(id);
    		} else {
-          System.out.println("Type error");
+        System.out.println("Type error");
    			System.exit(0);
    			return null;
    		}
@@ -1067,15 +1080,19 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    		// 	System.out.println("null data;");
    		// }
    		ClassMeta cm = classList.get(cl);
-   		// if (cm == null) {
-   		// 	System.out.println(classList.keySet().toString());
-   		// 	System.out.println("null cm; "+cl);
-   		// }
+   		if (cm == null) {
+   			System.out.println(classList.keySet().toString());
+   			System.out.println("null cm; "+cl);
+   		}
    		String pt = cm.getParent();
    		// if (pt == null) {
    		// 	System.out.println("null pt;");
    		// }
    		while ((!cm.containsFunc(fn)) && (!pt.isEmpty())) {
+        if (pt.equals(cl)) {
+          System.out.println("Type error");
+          System.exit(0);
+        }
    			cm = classList.get(pt);
    			pt = cm.getParent();
    		}
