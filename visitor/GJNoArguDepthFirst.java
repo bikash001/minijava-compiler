@@ -117,6 +117,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    public R visit(MainClass n) {
       R _ret=null;
       n.f0.accept(this);
+      expn = 0;
       currentClass = (String)n.f1.accept(this);
       if (init) {
       	classList.put(currentClass, new ClassMeta());
@@ -178,6 +179,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       n.f3.accept(this);
       n.f4.accept(this);
       n.f5.accept(this);
+      stackFrame.clear();
       return _ret;
    }
 
@@ -229,17 +231,19 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
 	      if (currentFunction.isEmpty()) {
 	      	ClassMeta cm = classList.get(currentClass);
 	      	if (cm.containsId(id)) {
-          System.out.println("Type error");
+            System.out.println("Type error");
 	      		System.exit(0);
 	      	}
 	      	cm.putIdType(id,tp);
 	      }
-	  } else if (!currentFunction.isEmpty()) {	//local variables
-      	if (stackFrame.containsKey(id)) {
-          System.out.println("Type error");
-      		System.exit(0);
-      	}
-      	stackFrame.put(id, tp);
+  	  } else {
+       if (!currentFunction.isEmpty()) {	//local variables
+        	if (stackFrame.containsKey(id)) {
+            System.out.println("Type error");
+        		System.exit(0);
+        	}
+        	stackFrame.put(id, tp);
+        }
       }
       n.f2.accept(this);
       return _ret;
@@ -273,7 +277,9 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
 	      } else {
 	      	cm.putFunc(currentFunction,new FuncMeta(fn));
 	      }
-	  }
+	    } else {
+        matchFunction(currentClass,currentFunction);
+      }
       n.f3.accept(this);
       n.f4.accept(this);
       n.f5.accept(this);
@@ -288,7 +294,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
           System.out.println("Type error");
 	      	System.exit(0);
 	      }
-	  }
+	   }
       n.f11.accept(this);
       n.f12.accept(this);
       if (!init) {
@@ -558,7 +564,6 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       n.f1.accept(this);
       String tp = (String)n.f2.accept(this);
       if (!init) {
-        // System.out.println("error "+tp);
       	if (!tp.equals("int")) {
           System.out.println("Type error");
 	      	System.exit(0);
@@ -602,7 +607,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       n.f1.accept(this);
       String rt = (String)n.f2.accept(this);
       if (!init) {
-      	if (!lt.equals(rt) && !lt.equals((String)_ret)) {
+      	if (!lt.equals(rt) || !lt.equals("boolean")) {
           System.out.println("Type error");
       		System.exit(0);
       	}
@@ -621,7 +626,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       n.f1.accept(this);
       String rt = (String)n.f2.accept(this);
       if (!init) {
-      	if (!lt.equals(rt) && !lt.equals((String)_ret)) {
+      	if (!lt.equals(rt) || !lt.equals("boolean")) {
           System.out.println("Type error");
       		System.exit(0);
       	}
@@ -659,7 +664,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       n.f1.accept(this);
       String rt = (String)n.f2.accept(this);
       if (!init) {
-      	if (!lt.equals("int") && !rt.equals("int")) {
+      	if (!lt.equals(rt) || !(rt.equals("int") || rt.equals("boolean"))) {
           System.out.println("Type error");
       		System.exit(0);
       	}
@@ -678,7 +683,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       n.f1.accept(this);
       String rt = (String)n.f2.accept(this);
       if (!init) {
-      	if (!lt.equals(rt) && !lt.equals((String)_ret)) {
+      	if (!lt.equals(rt) || !lt.equals("int")) {
           System.out.println("Type error");
       		System.exit(0);
       	}
@@ -697,7 +702,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       n.f1.accept(this);
       String rt = (String)n.f2.accept(this);
       if (!init) {
-      	if (!lt.equals(rt) && !lt.equals((String)_ret)) {
+      	if (!lt.equals(rt) || !lt.equals("int")) {
           System.out.println("Type error");
       		System.exit(0);
       	}
@@ -716,7 +721,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       n.f1.accept(this);
       String rt = (String)n.f2.accept(this);
       if (!init) {
-      	if (!lt.equals(rt) && !lt.equals((String)_ret)) {
+      	if (!lt.equals(rt) || !lt.equals("int")) {
           System.out.println("Type error");
       		System.exit(0);
       	}
@@ -735,7 +740,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       n.f1.accept(this);
       String rt = (String)n.f2.accept(this);
       if (!init) {
-      	if (!lt.equals(rt) && !lt.equals((String)_ret)) {
+      	if (!lt.equals(rt) || !lt.equals("int")) {
           System.out.println("Type error");
       		System.exit(0);
       	}
@@ -1028,10 +1033,28 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       return _ret;
    }
 
+   private void matchFunction(String cl, String fn) {
+      String pt = classList.get(cl).getParent();
+      ClassMeta cm;
+      while (!pt.isEmpty()) {
+        cm = classList.get(pt);
+        if (cm.containsFunc(fn)) {
+          FuncMeta fone = classList.get(cl).getFunc(fn);
+          FuncMeta ftwo = cm.getFunc(fn);
+          if (!fone.equals(ftwo)) {
+            System.out.println("Type error");
+            System.exit(0);
+          }
+          return;
+        }
+      }
+   }
    private boolean checkParent(String child, String parent) {
       // System.out.println(child + " " + parent);
+      HashSet<String> hs = new HashSet<String>();
+      hs.add(child);
       String pr = classList.get(parent).getParent();
-      while (!pr.isEmpty()) {
+      while (!pr.isEmpty() && !hs.contains(pr)) {
         if (child.equals(pr)) {
           return true;
         }
@@ -1173,4 +1196,16 @@ class FuncMeta {
 	public void addParam(String pm) {
 		paramList.add(pm);
 	}
+  public boolean equals(FuncMeta fm) {
+    if (!this.rtype.equals(fm.getRtn()))
+      return false;
+    int count = this.paramList.size();
+    if (!fm.totalPmEquals(count))
+      return false;
+    for (int i=0; i<count; i++) {
+      if (!this.paramList.get(i).equals(fm.getParam(i+1)))
+        return false;
+    }
+    return true;
+  }
 }
