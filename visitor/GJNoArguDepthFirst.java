@@ -1047,6 +1047,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
           }
           return;
         }
+        pt = cm.getParent();
       }
    }
    private boolean checkParent(String child, String parent) {
