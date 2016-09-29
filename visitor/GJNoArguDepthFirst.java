@@ -1265,12 +1265,12 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       return _ret;
    }
 
-   public String getIdAddrClass(String cl, String id) {
-   		String t1 = getTemp();
-   			println("\nhello"+id+ " "+cl);
-   			return " BEGIN HLOAD "+t1+" TEMP 0 "+classList.get(cl).getIdIndex(id) +"\n"+
-   			"RETURN "+t1+" END\n";
-   }
+   // public String getIdAddrClass(String cl, String id) {
+   // 		String t1 = getTemp();
+   // 			println("\nhello"+id+ " "+cl);
+   // 			return " BEGIN HLOAD "+t1+" TEMP 0 "+classList.get(cl).getIdIndex(id) +"\n"+
+   // 			"RETURN "+t1+" END\n";
+   // }
 
    public String getIdAddr(String id) {
    		if (stackFrame.containsKey(id)) {
@@ -1393,10 +1393,11 @@ class ClassMeta {
 		return idType.get(name+"_"+id);
 	}
 	public int getIdIndex(String id) {
-		int temp = 0;
-		if ((temp = idField.indexOf(name+"_"+id)) != -1)
-			return temp;
-		return this.getFnIndex(id);
+		// int temp = 0;
+		// if ((temp = idField.indexOf(name+"_"+id)) != -1)
+		// 	return temp;
+		// return this.getFnIndex(id);
+    return 4 + 4 * idField.indexOf(name+"_"+id);
 	}
 	public ClassMeta(String nm, String par) {
 		this(nm);
