@@ -575,9 +575,10 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       R _ret=null;
       n.f0.accept(this);
       n.f1.accept(this);
-      String lb = "";
+      String lb = "", l2 = "";
       if (!firstTime) {
-      	print(" CJUMP ");
+        l2 = getLabel();
+      	print("\n"+l2+" CJUMP ");
       }
       String ex = (String)n.f2.accept(this);
       n.f3.accept(this);
@@ -590,7 +591,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       }
       String stm = (String)n.f4.accept(this);
       if (!firstTime) {
-      	println(" "+lb+" NOOP");
+      	println("\nJUMP "+l2+"\n"+lb+" NOOP");
       }
       return _ret;
    }
