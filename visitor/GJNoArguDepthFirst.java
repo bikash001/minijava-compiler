@@ -275,8 +275,8 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    public R visit(MethodDeclaration n) {
       R _ret=null;
       n.f0.accept(this);
-      n.f1.accept(this);
       idReq = true;
+      n.f1.accept(this);
       functionName = (String)n.f2.accept(this);
       idReq = false;
       if (firstTime) {
@@ -433,9 +433,6 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       String id = (String)n.f0.accept(this);
       idReq = false;
       if (!firstTime) {
-       //  String temp = getTemp();
-       //  println(" MOVE "+temp+" "+id);
-      	// print(" MOVE "+temp+" ");
         print(getAddr(id));
       }
       n.f1.accept(this);
@@ -458,9 +455,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
     */
    public R visit(ArrayAssignmentStatement n) {
       R _ret=null;
-      // idReq = true;
       String id = (String)n.f0.accept(this);
-      // idReq = false;
       if (!firstTime) {
       	print("HSTORE PLUS PLUS 4 TIMES 4 ");
       }
@@ -648,7 +643,6 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       R _ret=null;
       String t1 = "",l2 = "",l3 = "";
       if (!firstTime) {
-        // printExp = true; 
       	t1 = getTemp();
       	l2 = getLabel();
       	l3 = getLabel();
@@ -685,7 +679,6 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       R _ret=null;
       String t1 = "", l1 = "",l2 = "",l3 = "";
       if (!firstTime) {
-        // printExp = true; 
       	t1 = getTemp();
       	l1 = getLabel();
       	l2 = getLabel();
@@ -708,7 +701,6 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
         }
       	println(" "+l3+"\n"+ "MOVE "+t1+" 1\n JUMP "+l2+"\n"+l3+" MOVE "+
 	      	t1+" 0 \n"+l2+" NOOP\n RETURN "+t1+" END");
-        // printExp = false;
 	  }
       return _ret;
    }
@@ -722,7 +714,6 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       R _ret=null;
       String t1 = "", t2 = "", t3 = "";
       if (!firstTime) {
-        // printExp = true; 
       	t1 = getTemp();
       	t2 = getTemp();
       	t3 = getTemp();
@@ -757,7 +748,6 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       R _ret=null;
       String t1 = "", t2 = "", t3 = "";
       if (!firstTime) { 
-         // printExp = true;
       	t1 = getTemp();
       	t2 = getTemp();
       	t3 = getTemp();
@@ -778,7 +768,6 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
         }
       	println(" MOVE "+t3+" NE "+t1+" "+t2);
       	println(" RETURN "+t3+" END");
-        // printExp = false;
       }
       return _ret;
    }
@@ -792,7 +781,6 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       R _ret=null;
       String t1 = "", t2 ="", t3 = "";
       if (!firstTime) { 
-        // printExp = true;
       	t1 = getTemp();
       	t2 = getTemp();
       	t3 = getTemp();
@@ -813,7 +801,6 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
         }
       	println(" MOVE "+t3+" PLUS "+t1+" "+t2);
       	println(" RETURN "+t3+" END");
-        // printExp = false;
       }
       return _ret;
    }
@@ -827,7 +814,6 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       R _ret=null;
       String t1 = "", t2 ="", t3 = "";
       if (!firstTime) { 
-       // printExp = true;
       	t1 = getTemp();
       	t2 = getTemp();
       	t3 = getTemp();
@@ -848,7 +834,6 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
         }
       	println(" MOVE "+t3+" MINUS "+t1+" "+t2);
       	println(" RETURN "+t3+" END");
-        // printExp = false;
       }
       return _ret;
    }
@@ -862,7 +847,6 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       R _ret=null;
       String t1 = "", t2 ="", t3 = "";
       if (!firstTime) { 
-       // printExp = true;
       	t1 = getTemp();
       	t2 = getTemp();
       	t3 = getTemp();
@@ -883,7 +867,6 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
         }
       	println(" MOVE "+t3+" TIMES "+t1+" "+t2);
       	println(" RETURN "+t3+" END");
-        // printExp = false;
       }
       return _ret;
    }
@@ -897,7 +880,6 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       R _ret=null;
       String t1 = "", t2 ="", t3 = "";
       if (!firstTime) { 
-       // printExp = true;
       	t1 = getTemp();
       	t2 = getTemp();
       	t3 = getTemp();
@@ -918,7 +900,6 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
         }
       	println(" MOVE "+t3+" DIV "+t1+" "+t2);
       	println(" RETURN "+t3+" END");
-        // printExp = false;
       }
       return _ret;
    }
@@ -931,25 +912,15 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
     */
    public R visit(ArrayLookup n) {
       R _ret=null;
-      // idReq = true;
       String t1 = "";
       String p1 = (String)n.f0.accept(this);
-      // if (!firstTime) {
-      // 	t1 = getTemp();
-      // 	print(" BEGIN HLOAD "+t1+" "+getIdAddr(p1)+" PLUS 4 TIMES 4 ");
-      // }
-      // idReq = false;
       n.f1.accept(this);
       String p2 = (String)n.f2.accept(this);
       n.f3.accept(this);
       if (!firstTime) {
         t1 = getTemp();
         println("\nBEGIN\n HLOAD "+t1+" PLUS PLUS 4 TIMES 4 "+p2+" "+p1+" 0");
-        // if (p2 != null) {
-        //   print(" ");
-        //   println(p2);
-        // }
-        println("RETURN "+t1+" END");
+       println("RETURN "+t1+" END");
       }
       return _ret;
    }
@@ -1013,20 +984,10 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
         	if (cl.equals("TEMP 0")) {
         		println(" "+classList.get(className).getFnIndex(fn));
         	} else {
-        		// println(getType(cl));
         		ClassMeta cm = classList.get(getType(cl));
             int pm = 0;
-            try{
         		  pm = cm.getFnIndex(fn);
-            } catch (Exception e) {
-              println(fn);
-              println(cl);
-              println(getType(cl));
-              // println(cm.name);
-              // println(cm.fnField.toString());
-              System.exit(0);
-            } 
-        		println(" "+classList.get(getType(cl)).getFnIndex(fn));
+         	  println(" "+classList.get(getType(cl)).getFnIndex(fn));
         	}
         } else {
           println(" "+classList.get(nwClass).getFnIndex(fn));
@@ -1135,9 +1096,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       	_ret = (R)n.f0.toString();
       } else {
         _ret = (R)getIdAddr(n.f0.toString());
-        // if (printExp) {
-        //   print((String)_ret);
-        // }
+      
       }
 
       return _ret;
@@ -1244,7 +1203,6 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
         if(exp != null) {
           print(exp);
         }
-	      // String rt;
 	      String l1 = getLabel();
 	      String l2 = getLabel();
 	      String temp = getTemp();
@@ -1305,7 +1263,9 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    			return stackFrame.get(id).mem;
    		} else {
    			String t1 = getTemp();
-   			return " BEGIN HLOAD "+t1+" TEMP 0 "+classList.get(className).getIdIndex(id) +"\n"+
+        int idx = 0;
+        idx = classList.get(className).getIdIndex(id,classList);
+         return " BEGIN HLOAD "+t1+" TEMP 0 "+idx +"\n"+
    			"RETURN "+t1+" END\n";
    		}
    }
@@ -1314,7 +1274,9 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    		if (stackFrame.containsKey(id)) {
    			return " MOVE "+stackFrame.get(id).mem+ " ";
    		} else {
-	        return " HSTORE TEMP 0 "+classList.get(className).getIdIndex(id)+" ";
+        int inx = 0;
+        inx = classList.get(className).getIdIndex(id,classList);
+         return " HSTORE TEMP 0 "+inx+" ";
    		}
    }
 
@@ -1322,32 +1284,17 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    		if (stackFrame.containsKey(id)) {
    			return stackFrame.get(id).type;
    		} else {
-   			println(id+" "+className);
-        String temp = classList.get(className).getIdType(id);
-        println(classList.get(className).idField.toString());
-        println(classList.get(className).idType.keySet().toString());
-        println(" "+temp);
-   			return temp;
+        String temp = classList.get(className).getIdType(id,classList);
+      	return temp;
    		}
    }
 
    private String getTemp() {
-    // if (TEMP_VALUE == 366) {
-    //     for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
-    //         System.out.println(ste);
-    //     }
-    //     System.exit(0);
-    // }
-   	return "TEMP "+(++TEMP_VALUE);
+       return "TEMP "+(++TEMP_VALUE);
    }
 
    private String getLabel() {
-    // if (LABEL_VALUE == 27) {
-    //     for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
-    //         System.out.println(ste);
-    //     }
-    // }
-   	return "L"+(++LABEL_VALUE);
+      return "L"+(++LABEL_VALUE);
    }
 
    public void topSort() {
@@ -1388,19 +1335,8 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    						cm.fnField.add(temp.get(j));
    						fn.add(list.get(i));
    					} else {
-              //made changes here
               pp = pm.fnField.indexOf(temp.get(j));
-              try{
    						fn.set(pp,list.get(i));
-            } catch (Exception e) {
-              println(""+pp);
-              println(temp.get(j));
-              println(pm.fnField.toString());
-              println(list.get(i));
-              println(fn.toString());
-              println(list.toString());
-              System.exit(0);
-            }
    					}
    				}
    			} else {
@@ -1445,15 +1381,23 @@ class ClassMeta {
 		idField = new ArrayList<String>();
 		fnField = new ArrayList<String>();
 	}
-	public String getIdType(String id) {
-		return idType.get(name+"_"+id);
+	public String getIdType(String id, HashMap<String,ClassMeta> cm) {
+    String idt = "";
+    if (idType.containsKey(name+"_"+id)) {
+      idt = idType.get(name+"_"+id);
+    } else {
+      idt = cm.get(parent).getIdType(id,cm);
+    }
+		return idt;
 	}
-	public int getIdIndex(String id) {
-		// int temp = 0;
-		// if ((temp = idField.indexOf(name+"_"+id)) != -1)
-		// 	return temp;
-		// return this.getFnIndex(id);
-    return 4 + 4 * idField.indexOf(name+"_"+id);
+	public int getIdIndex(String id, HashMap<String,ClassMeta> cl) {
+		int idx = 0;
+    if (idType.containsKey(name+"_"+id)) {
+      idx = 4 + 4 * idField.indexOf(name+"_"+id);
+    } else {
+      idx = cl.get(parent).getIdIndex(id,cl);
+    }
+    return idx;
 	}
 	public ClassMeta(String nm, String par) {
 		this(nm);
