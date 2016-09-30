@@ -987,8 +987,6 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       idReq = true;
       if (!firstTime) {
         t1 = getTemp();
-        t2 = getTemp();
-        t3 = getTemp();
         println(" CALL");
         print(" BEGIN\n MOVE "+t1+" ");
       }
@@ -1001,6 +999,8 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
         		println(getIdAddr(cl));
         	}
         }
+        t2 = getTemp();
+        t3 = getTemp();
       	println("HLOAD "+ t2 + " "+t1+" 0");
         print("HLOAD "+ t3 + " "+t2+" ");
       }
@@ -1015,7 +1015,17 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
         	} else {
         		// println(getType(cl));
         		ClassMeta cm = classList.get(getType(cl));
-        		int pm = cm.getFnIndex(fn);
+            int pm = 0;
+            try{
+        		  pm = cm.getFnIndex(fn);
+            } catch (Exception e) {
+              println(fn);
+              println(cl);
+              println(getType(cl));
+              // println(cm.name);
+              // println(cm.fnField.toString());
+              System.exit(0);
+            } 
         		println(" "+classList.get(getType(cl)).getFnIndex(fn));
         	}
         } else {
@@ -1157,7 +1167,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       String t2 = "";
       if (!firstTime) {
       	t2 = getTemp();
-      	print(" BEGIN\n MOVE "+t2+" TIMES 4 ");
+      	print(" BEGIN\n MOVE "+t2+" ");
       }
       String exp = (String)n.f3.accept(this);
       n.f4.accept(this);
@@ -1168,8 +1178,19 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
         }
 	      String t1 = getTemp();
         String t3 = getTemp();
-        println(" MOVE "+t3+" PLUS 4 "+t2);
-      	println("\nMOVE "+t1 + " HALLOCATE "+t3+" \n RETURN "+t1+" END");
+        String lb = getLabel();
+        String t4 = getTemp();
+        String lout = getLabel();
+        println(" MOVE "+t3+ " PLUS 4 TIMES 4 "+ t2);
+      	println("\nMOVE "+t1 + " HALLOCATE "+t3);
+        println("HSTORE "+t1+ " 0 "+ t2);
+        println("MOVE "+t4+" 4");
+        println(lb+" CJUMP NE "+ t4+ " "+t3+" "+lout);
+        println("HSTORE PLUS "+t1+" "+t4+" 0 0");
+        println("MOVE "+t4+" PLUS 4 "+t4);
+        println("JUMP "+lb);
+        println(lout+" NOOP");
+        println("RETURN "+t1+" END");
       }
       return _ret;
    }
@@ -1200,6 +1221,9 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
 	      	println("HSTORE "+t1+" "+(i*4)+" "+cm.fnInfo.get(i)+"_"+cm.fnField.get(i));
 	      }
 	      println("HSTORE "+t2+" 0 "+t1);
+        for (int i=0; i<cm.idField.size(); i++) {
+          println("HSTORE "+ t2+ " "+(i*4+4)+" 0");
+        }
 	      println(" RETURN "+t2+" END");
 	  }
       return _ret;
@@ -1217,6 +1241,9 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       }
       String exp = (String)n.f1.accept(this);
       if (!firstTime) {
+        if(exp != null) {
+          print(exp);
+        }
 	      // String rt;
 	      String l1 = getLabel();
 	      String l2 = getLabel();
@@ -1295,21 +1322,31 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    		if (stackFrame.containsKey(id)) {
    			return stackFrame.get(id).type;
    		} else {
-   			println(id);
-   			return classList.get(className).getIdType(id);
+   			println(id+" "+className);
+        String temp = classList.get(className).getIdType(id);
+        println(classList.get(className).idField.toString());
+        println(classList.get(className).idType.keySet().toString());
+        println(" "+temp);
+   			return temp;
    		}
    }
 
    private String getTemp() {
-    // if (TEMP_VALUE == 31) {
+    // if (TEMP_VALUE == 366) {
     //     for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
     //         System.out.println(ste);
     //     }
+    //     System.exit(0);
     // }
    	return "TEMP "+(++TEMP_VALUE);
    }
 
    private String getLabel() {
+    // if (LABEL_VALUE == 27) {
+    //     for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
+    //         System.out.println(ste);
+    //     }
+    // }
    	return "L"+(++LABEL_VALUE);
    }
 
@@ -1345,12 +1382,25 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    				cm.fnField = new ArrayList<String>(pm.fnField);
    				cm.fnInfo = new ArrayList<String>(pm.fnInfo);
    				ArrayList<String> fn = cm.fnInfo;
+          int pp = 0;
    				for (int j=0; j<temp.size(); j++) {
-   					if (!pm.fnField.contains(temp.get(j))) {
+   					if (!pm.fnField.contains(temp.get(j))) {//if function does not contain in parent
    						cm.fnField.add(temp.get(j));
    						fn.add(list.get(i));
    					} else {
-   						fn.set(fn.indexOf(temp.get(j)),list.get(i));
+              //made changes here
+              pp = pm.fnField.indexOf(temp.get(j));
+              try{
+   						fn.set(pp,list.get(i));
+            } catch (Exception e) {
+              println(""+pp);
+              println(temp.get(j));
+              println(pm.fnField.toString());
+              println(list.get(i));
+              println(fn.toString());
+              println(list.toString());
+              System.exit(0);
+            }
    					}
    				}
    			} else {
