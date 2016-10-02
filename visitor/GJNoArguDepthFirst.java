@@ -23,7 +23,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
 	private String args;
 	private int paramCount;
 	private boolean idReq, printExp;
-	private String fCall, nwClass;
+	private String fCall, nwClass, clReturn;
 
 	private void print(String str) {
 		System.out.print(str);
@@ -39,6 +39,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
 		fCall = "";
 		nwClass = "";
     printExp = false;
+    clReturn = "";
 		paramCount = 0;
 		idReq = false;
 		firstTime = true;
@@ -276,11 +277,12 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       R _ret=null;
       n.f0.accept(this);
       idReq = true;
-      n.f1.accept(this);
+      String type = (String)n.f1.accept(this);
       functionName = (String)n.f2.accept(this);
       idReq = false;
       if (firstTime) {
       	classList.get(className).fnField.add(functionName);
+        classList.get(className).fnInfo.add(new FnMeta(className,type));
       }
       fPmCount = 0;
       n.f3.accept(this);
@@ -955,6 +957,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    public R visit(MessageSend n) {
       R _ret=null;
       String t1 = "", t2 ="", t3 = "";
+      String temp = "";
       idReq = true;
       if (!firstTime) {
         t1 = getTemp();
@@ -983,14 +986,22 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
         if (cl != null) {
         	if (cl.equals("TEMP 0")) {
         		println(" "+classList.get(className).getFnIndex(fn));
+            temp = classList.get(className).getFnRtn(fn);
         	} else {
         		ClassMeta cm = classList.get(getType(cl));
             int pm = 0;
+            temp = cm.getFnRtn(fn);
         		  pm = cm.getFnIndex(fn);
-         	  println(" "+classList.get(getType(cl)).getFnIndex(fn));
+         	  println(" "+cm.getFnIndex(fn));
         	}
         } else {
-          println(" "+classList.get(nwClass).getFnIndex(fn));
+          if (nwClass.isEmpty()) {
+            temp = classList.get(clReturn).getFnRtn(fn);
+            println(" "+classList.get(clReturn).getFnIndex(fn));
+          } else {
+            temp = classList.get(nwClass).getFnRtn(fn);
+            println(" "+classList.get(nwClass).getFnIndex(fn));
+          }
         }
       	println(" RETURN "+t3+" END");
       	print("( "+t1+" ");
@@ -1000,6 +1011,8 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
       n.f4.accept(this);
       if (!firstTime) {
       	println(" )");
+        clReturn = temp;
+        nwClass = "";
       }
       n.f5.accept(this);
       return _ret;
@@ -1177,7 +1190,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
 	      println(" BEGIN\n MOVE "+t1+" HALLOCATE "+cm.getFnSize());
 	      println("MOVE "+t2+" HALLOCATE "+cm.getFieldSize());
 	      for (int i=0; i<cm.fnField.size(); i++) {
-	      	println("HSTORE "+t1+" "+(i*4)+" "+cm.fnInfo.get(i)+"_"+cm.fnField.get(i));
+	      	println("HSTORE "+t1+" "+(i*4)+" "+cm.fnInfo.get(i).parent+"_"+cm.fnField.get(i));
 	      }
 	      println("HSTORE "+t2+" 0 "+t1);
         for (int i=0; i<cm.idField.size(); i++) {
@@ -1290,7 +1303,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    }
 
    private String getTemp() {
-       return "TEMP "+(++TEMP_VALUE);
+      return "TEMP "+(++TEMP_VALUE);
    }
 
    private String getLabel() {
@@ -1299,7 +1312,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
 
    public void topSort() {
    		ArrayList<String> que = new ArrayList<String>();
-   		ArrayList<String> list = new ArrayList<String>();
+   		ArrayList<String> list = new ArrayList<String>();//class names
    		Set<String> keys = classList.keySet();
    		Iterator<String> it = keys.iterator();
    		ClassMeta cm;
@@ -1327,23 +1340,18 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    				cm.idField.addAll(temp);
    				temp = cm.fnField;
    				cm.fnField = new ArrayList<String>(pm.fnField);
-   				cm.fnInfo = new ArrayList<String>(pm.fnInfo);
-   				ArrayList<String> fn = cm.fnInfo;
+          ArrayList<FnMeta> meta = cm.fnInfo;
+   				cm.fnInfo = new ArrayList<FnMeta>(pm.fnInfo);
+   				ArrayList<FnMeta> fn = cm.fnInfo;
           int pp = 0;
    				for (int j=0; j<temp.size(); j++) {
    					if (!pm.fnField.contains(temp.get(j))) {//if function does not contain in parent
    						cm.fnField.add(temp.get(j));
-   						fn.add(list.get(i));
+   						fn.add(meta.get(j));
    					} else {
               pp = pm.fnField.indexOf(temp.get(j));
-   						fn.set(pp,list.get(i));
+   						fn.set(pp,meta.get(j));
    					}
-   				}
-   			} else {
-   				ArrayList<String> fn = cm.fnInfo;
-   				int size = cm.fnField.size();
-   				for (int j=0; j<size; ++j) {
-   					fn.add(list.get(i));
    				}
    			}
    		}
@@ -1364,10 +1372,23 @@ class ObData{
 	}
 }
 
+class FnMeta{
+  public String type;
+  public String parent;
+  public FnMeta() {
+    type = "";
+    parent = "";
+  }
+  public FnMeta(String par, String tp) {
+    type = tp;
+    parent = par;
+  }
+}
+
 class ClassMeta {
 	public ArrayList<String> idField;
 	public ArrayList<String> fnField;
-	public ArrayList<String> fnInfo;
+	public ArrayList<FnMeta> fnInfo;
 	public HashMap<String,String> idType;
 	public boolean isChild;
 	public String parent;
@@ -1377,7 +1398,7 @@ class ClassMeta {
 		isChild = false;
 		name = nm;
 		idType = new HashMap<String,String>();
-		fnInfo = new ArrayList<String>();
+		fnInfo = new ArrayList<FnMeta>();
 		idField = new ArrayList<String>();
 		fnField = new ArrayList<String>();
 	}
@@ -1403,6 +1424,9 @@ class ClassMeta {
 		this(nm);
 		parent = par;
 	}
+  public String getFnRtn(String fn) {
+    return fnInfo.get(fnField.indexOf(fn)).type;
+  }
 	public int getFnIndex(String fn) {
 		return 4 * fnField.indexOf(fn);
 	}
