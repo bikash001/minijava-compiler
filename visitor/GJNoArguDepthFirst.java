@@ -11,6 +11,30 @@ import java.util.*;
  * order.  Your visitors may extend this class.
  */
 public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
+   
+  private String getTemp() {
+    return "TEMP "+(++tempVal);
+  }
+
+  private void print(String str) {
+    System.out.print(str);
+  }
+
+  private void println(String str) {
+    System.out.println(str);
+  }
+
+  private int tempVal;
+  private boolean calling;
+  private Stack<String> params;
+  private boolean needLabel;
+   public GJNoArguDepthFirst() {
+    tempVal = 100;
+    calling = false;
+    needLabel = true;
+    params = new Stack();
+   }
+
    //
    // Auto class visitors--probably don't need to be overridden.
    //
@@ -71,8 +95,10 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    public R visit(Goal n) {
       R _ret=null;
       n.f0.accept(this);
+      println("MAIN");
       n.f1.accept(this);
       n.f2.accept(this);
+      println("END");
       n.f3.accept(this);
       n.f4.accept(this);
       return _ret;
@@ -83,6 +109,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
     */
    public R visit(StmtList n) {
       R _ret=null;
+      needLabel = true;
       n.f0.accept(this);
       return _ret;
    }
@@ -96,11 +123,17 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
     */
    public R visit(Procedure n) {
       R _ret=null;
-      n.f0.accept(this);
+      needLabel = false;
+      String lb = (String)n.f0.accept(this);
+      needLabel = true;
       n.f1.accept(this);
-      n.f2.accept(this);
+      String nt = (String)n.f2.accept(this);
       n.f3.accept(this);
-      n.f4.accept(this);
+      println(lb + " [ "+nt+" ] ");
+      println("BEGIN");
+      String mv = (String)n.f4.accept(this);
+      println("RETURN "+mv);
+      println("END");
       return _ret;
    }
 
@@ -126,6 +159,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    public R visit(NoOpStmt n) {
       R _ret=null;
       n.f0.accept(this);
+      println("NOOP");
       return _ret;
    }
 
@@ -135,6 +169,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    public R visit(ErrorStmt n) {
       R _ret=null;
       n.f0.accept(this);
+      println("ERROR");
       return _ret;
    }
 
@@ -146,8 +181,11 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    public R visit(CJumpStmt n) {
       R _ret=null;
       n.f0.accept(this);
-      n.f1.accept(this);
-      n.f2.accept(this);
+      String tmp = (String)n.f1.accept(this);
+      needLabel = false;
+      String lb = (String)n.f2.accept(this);
+      needLabel = true;
+      println(" CJUMP "+tmp+" "+lb);
       return _ret;
    }
 
@@ -158,7 +196,10 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    public R visit(JumpStmt n) {
       R _ret=null;
       n.f0.accept(this);
-      n.f1.accept(this);
+      needLabel = false;
+      String lb = (String)n.f1.accept(this);
+      needLabel = true;
+      println("JUMP "+lb);
       return _ret;
    }
 
@@ -171,9 +212,12 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    public R visit(HStoreStmt n) {
       R _ret=null;
       n.f0.accept(this);
-      n.f1.accept(this);
-      n.f2.accept(this);
-      n.f3.accept(this);
+      String t1 = (String)n.f1.accept(this);
+      String nt = (String)n.f2.accept(this);
+      needLabel = false;
+      String t2 = (String)n.f3.accept(this);
+      needLabel = true;
+      println("HSTORE "+t1+" "+nt+" "+t2);
       return _ret;
    }
 
@@ -186,9 +230,10 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    public R visit(HLoadStmt n) {
       R _ret=null;
       n.f0.accept(this);
-      n.f1.accept(this);
-      n.f2.accept(this);
-      n.f3.accept(this);
+      String t1 = (String)n.f1.accept(this);
+      String t2 = (String)n.f2.accept(this);
+      String nt = (String)n.f3.accept(this);
+      println("HLOAD "+t1+" "+t2+" "+nt);
       return _ret;
    }
 
@@ -200,8 +245,9 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    public R visit(MoveStmt n) {
       R _ret=null;
       n.f0.accept(this);
-      n.f1.accept(this);
-      n.f2.accept(this);
+      String tmp = (String)n.f1.accept(this);
+      String t2 = (String)n.f2.accept(this);
+      println("MOVE "+tmp+" "+t2);
       return _ret;
    }
 
@@ -212,7 +258,8 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    public R visit(PrintStmt n) {
       R _ret=null;
       n.f0.accept(this);
-      n.f1.accept(this);
+      String tmp = (String)n.f1.accept(this);
+      println("PRINT "+tmp);
       return _ret;
    }
 
@@ -227,8 +274,17 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
     */
    public R visit(Exp n) {
       R _ret=null;
-      n.f0.accept(this);
-      return _ret;
+      boolean tp = calling;
+      calling = false;
+      String nt = (String)n.f0.accept(this);
+      String tmp = getTemp();
+      println("MOVE "+tmp+" "+nt);
+      if (tp) {
+        String st = params.pop();
+        params.push(st.concat(tmp+" "));
+      }
+      calling = tp;
+      return (R)tmp;
    }
 
    /**
@@ -241,11 +297,15 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    public R visit(StmtExp n) {
       R _ret=null;
       n.f0.accept(this);
+      // String tp = getTemp();
+      // println("MOVE "+tp+" BEGIN");
       n.f1.accept(this);
       n.f2.accept(this);
-      n.f3.accept(this);
+      String tmp = (String)n.f3.accept(this);
       n.f4.accept(this);
-      return _ret;
+      // println("RETURN "+tmp);
+      // println("END");
+      return (R)tmp;
    }
 
    /**
@@ -258,11 +318,15 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    public R visit(Call n) {
       R _ret=null;
       n.f0.accept(this);
-      n.f1.accept(this);
+      String exp = (String)n.f1.accept(this);
+      calling = true;
+      params.push("");
       n.f2.accept(this);
       n.f3.accept(this);
       n.f4.accept(this);
-      return _ret;
+      calling = false;
+      String st = "CALL "+exp+" ( "+params.pop()+" )";
+      return (R)st;
    }
 
    /**
@@ -272,8 +336,9 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    public R visit(HAllocate n) {
       R _ret=null;
       n.f0.accept(this);
-      n.f1.accept(this);
-      return _ret;
+      String tmp = (String)n.f1.accept(this);
+      String tp = "HALLOCATE "+tmp+"\n";
+      return (R)tp;
    }
 
    /**
@@ -283,10 +348,11 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
     */
    public R visit(BinOp n) {
       R _ret=null;
-      n.f0.accept(this);
-      n.f1.accept(this);
-      n.f2.accept(this);
-      return _ret;
+      String op = (String)n.f0.accept(this);
+      String tmp1 = (String)n.f1.accept(this);
+      String tmp2 = (String)n.f2.accept(this);
+      String st = op+" "+tmp1+" "+tmp2;
+      return (R)st;
    }
 
    /**
@@ -300,7 +366,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    public R visit(Operator n) {
       R _ret=null;
       n.f0.accept(this);
-      return _ret;
+      return (R)n.f0.choice.toString();
    }
 
    /**
@@ -310,8 +376,8 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    public R visit(Temp n) {
       R _ret=null;
       n.f0.accept(this);
-      n.f1.accept(this);
-      return _ret;
+      String nt = (String)n.f1.accept(this);
+      return (R)("TEMP "+nt+" ");
    }
 
    /**
@@ -320,7 +386,7 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    public R visit(IntegerLiteral n) {
       R _ret=null;
       n.f0.accept(this);
-      return _ret;
+      return (R)n.f0.toString();
    }
 
    /**
@@ -329,6 +395,9 @@ public class GJNoArguDepthFirst<R> implements GJNoArguVisitor<R> {
    public R visit(Label n) {
       R _ret=null;
       n.f0.accept(this);
+      _ret = (R)n.f0.toString();
+      if (needLabel)
+        print(n.f0.toString()+" ");
       return _ret;
    }
 
