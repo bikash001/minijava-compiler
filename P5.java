@@ -6,10 +6,9 @@ public class P5 {
       try {
          Node root = new microIRParser(System.in).Goal();
          // System.out.println("Program parsed successfully");
-         GJNoArguDepthFirst head = new GJNoArguDepthFirst();
-         root.accept(head); // Your assignment part is invoked here.
-         head.firstTime = false;
-         root.accept(head);
+         GJDepthFirst<String,Integer> head = new GJDepthFirst<String,Integer>();
+         root.accept(head, 0); // Your assignment part is invoked here.
+         // root.accept(head, 1);
       }
       catch (ParseException e) {
          System.out.println(e.toString());
