@@ -36,7 +36,10 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
     private HashMap<String,Integer> labels;
     private HashMap<Integer,String> gotos;
     private HashMap<Integer,Integer> sStore, tStore;
-    private int SPILL_BASE;
+    private boolean ltOps;
+    private String leftOp;
+    private String debug_label;
+    private HashMap<Integer,Integer> sregUses;
 
     private void initTRegs() {
       tRegisters.clear();
@@ -62,7 +65,9 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
     sRegisters = new LinkedList<Integer>();
     sStore = new HashMap<Integer,Integer>();
     tStore = new HashMap<Integer,Integer>();
-    SPILL_BASE = 0;
+    sregUses = new HashMap<Integer,Integer>();
+    ltOps = false;
+    leftOp = "";
     initSRegs();
     params = 0;
     stmtNo = 0;
@@ -171,8 +176,12 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
       n.f3.accept(this, argu);
       n.f4.accept(this, argu);
       // if ((Integer)argu == 1) {
+      //   currMap = fnList.get("TV_Start").hm;
       //   System.out.println(currMap.toString());
       // }
+      if ((Integer)argu == 2) {
+        System.out.println("// Number of  vars after packing = 0; Number of Spilled vars = 0");
+      }
       return _ret;
    }
 
@@ -197,6 +206,10 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
       stmtNo = 0;
       spillMax = -1;
       String label = (String)n.f0.accept(this, null);
+      debug_label = label;
+      // if (!debug_label.equals("TV_Start")){
+      //   return _ret;
+      // }
       n.f1.accept(this, argu);
       String pm = (String)n.f2.accept(this, argu);
       params = Integer.parseInt(pm);
@@ -206,6 +219,9 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
         fnMeta = new FuncMeta();
         currMap = fnMeta.hm;
         fnList.put(label,fnMeta);
+        for (int i=0; i<params; ++i) {
+          currMap.put("TEMP "+i, new Pair(stmtNo));
+        }
       } else {
         fnMeta = fnList.get(label);
         currMap = fnMeta.hm;
@@ -213,13 +229,21 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
         if ((Integer)argu == 1){
           initTRegs();
           initSRegs();
+          sregUses.clear();
+          spillList.clear();
           if (params > 4) {
             spillMax = params - 5;
           }
         } else {
           sStore.clear();
           int space = fnMeta.space + fnMeta.sRegs.size() + fnMeta.spillMax + 1;
+          // System.out.println("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
           System.out.println(label+" ["+pm+"]["+space+"]["+fnMeta.maxArg+"]");
+          // if (label.equals("Tree_RecPrint")) {
+            // System.out.println(label+" "+fnMeta.space+" "+fnMeta.sRegs.size()+" "+fnMeta.spillMax);
+            // System.exit(0);
+          // }
+          // System.out.println("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
           Iterator<Integer> it = fnMeta.sRegs.iterator();
           int spNo = fnMeta.spillMax;
           while (it.hasNext()) {
@@ -235,19 +259,23 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
           int i = 0;
           for (; i<spNo; ++i) {
             Pair p = currMap.get("TEMP "+i);
-            if (p.spillNo == -1) {
-              System.out.println("MOVE "+p.rType+p.register+" a"+i);
-            } else {
-              System.out.println("ASTORE SPILLEDARG "+p.spillNo+" a"+i);
+            if (p != null && p.altdR) {  //null means it is not used in the function
+              if (p.spillNo == -1) {
+                System.out.println("MOVE "+p.rType+p.register+" a"+i);
+              } else {
+                System.out.println("ASTORE SPILLEDARG "+p.spillNo+" a"+i);
+              }
             }
           }
           for (int k=0; i < params; ++i, ++k) {
             Pair p = currMap.get("TEMP "+i);
-            if (p.spillNo == -1) {
-              System.out.println("ALOAD "+p.rType+p.register+" SPILLEDARG "+k);
-            } else {
-              System.out.println("ALOAD v1"+" SPILLEDARG "+k);
-              System.out.println("ASTORE SPILLEDARG "+p.spillNo+" v1");
+            if (p != null && p.altdR) {
+              if (p.spillNo == -1) {
+                System.out.println("ALOAD "+p.rType+p.register+" SPILLEDARG "+k);
+              } else {
+                System.out.println("ALOAD v1"+" SPILLEDARG "+k);
+                System.out.println("ASTORE SPILLEDARG "+p.spillNo+" v1");
+              }
             }
           }
         }
@@ -321,7 +349,26 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
       n.f0.accept(this, argu);
       String tm = (String)n.f1.accept(this, argu);
       String lb = (String)n.f2.accept(this, null);
-      if ((Integer)argu == 2) {
+      if ((Integer)argu == 0) {
+        gotos.put(stmtNo, lb);
+      } else if ((Integer)argu == 1) {
+        Iterator itr = currMap.keySet().iterator();
+        while (itr.hasNext()) {
+          Pair pair = currMap.get(itr.next());
+          if (pair.second == stmtNo) {
+            if (pair.spillNo == -1) { //return registers
+              if (pair.rType.equals("s")) {
+                sRegisters.addFirst(pair.register);
+                sregUses.put(pair.register,stmtNo);
+              } else {
+                tRegisters.addLast(pair.register);
+              }
+            } else {
+              spillList.add(pair.spillNo);
+            }
+          }
+        }
+      } else if ((Integer)argu == 2) {
         Pair pair = currMap.get(tm);
         String reg = "";
         if (!(pair.spillNo == -1)) {
@@ -345,6 +392,23 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
       String lb = (String)n.f1.accept(this, null);
       if ((Integer)argu == 0) {
         gotos.put(stmtNo, lb);
+      } else if ((Integer)argu == 1) {
+        Iterator itr = currMap.keySet().iterator();
+        while (itr.hasNext()) {
+          Pair pair = currMap.get(itr.next());
+          if (pair.second == stmtNo) {
+            if (pair.spillNo == -1) { //return registers
+              if (pair.rType.equals("s")) {
+                sRegisters.addFirst(pair.register);
+                sregUses.put(pair.register,stmtNo);
+              } else {
+                tRegisters.addLast(pair.register);
+              }
+            } else {
+              spillList.add(pair.spillNo);
+            }
+          }
+        }
       } else if ((Integer)argu == 2) {
         System.out.println("JUMP "+lb);
       }
@@ -369,8 +433,8 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
         if (pair.spillNo == -1) {
           reg_tm = pair.rType+pair.register;
         } else {
-          System.out.println("ALOAD v0 SPILLEDARG "+pair.spillNo);
           reg_tm = "v0";
+          System.out.println("ALOAD v0 SPILLEDARG "+pair.spillNo);
         }
         Pair pair_temp = currMap.get(temp);
         String reg_temp;
@@ -406,7 +470,6 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
         if (pair.spillNo == -1) {
           reg_tm = pair.rType+pair.register;
         } else {
-          System.out.println("ALOAD v0 SPILLEDARG "+pair.spillNo);
           reg_tm = "v0";
         }
         Pair pair_temp = currMap.get(temp);
@@ -417,7 +480,7 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
           reg_temp = "v1";
           System.out.println("ALOAD v1 SPILLEDARG "+pair_temp.spillNo);
         }
-        System.out.println("HLOAD "+reg_tm+" "+lt+" "+reg_temp);
+        System.out.println("HLOAD "+reg_tm+" "+reg_temp+" "+lt);
         if (pair.spillNo != -1) {
           System.out.println("ASTORE SPILLEDARG "+pair.spillNo+" v0");
         }
@@ -432,6 +495,7 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
     */
    public R visit(MoveStmt n, A argu) {
       R _ret=null;
+      ltOps = false;
       n.f0.accept(this, argu);
       String tm = (String)n.f1.accept(this, argu);
       String exp = (String)n.f2.accept(this, argu);
@@ -441,13 +505,15 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
         if (pair.spillNo == -1) {
           reg = pair.rType+pair.register;
         } else {
-          System.out.println("ALOAD v1 SPILLEDARG "+pair.spillNo);
           reg = "v1";
         }
         if (exp == null) {
           System.out.println("MOVE "+reg+" v0");
         } else {
           System.out.println("MOVE "+reg+" "+exp);
+          if (ltOps) {
+            System.out.println("MOVE "+leftOp+" PLUS "+leftOp+" 1");
+          }
         }
         if (pair.spillNo != -1) {
           System.out.println("ASTORE SPILLEDARG "+pair.spillNo+" v1");
@@ -516,8 +582,8 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
           if (pair.spillNo == -1) {
             reg_tm = pair.rType+pair.register;
           } else {
-            System.out.println("ALOAD v1 SPILLEDARG "+pair.spillNo);
-            reg_tm = "v1";
+            System.out.println("ALOAD v0 SPILLEDARG "+pair.spillNo);
+            reg_tm = "v0";
           }
           System.out.println("MOVE v0 "+reg_tm); 
         } else {
@@ -551,22 +617,64 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
         Iterator it = currMap.keySet().iterator();
         Pair pair;
         while (it.hasNext()) {
-          pair = currMap.get(it.next());
+          Object keyval = it.next();
+          pair = currMap.get(keyval);
+          if (!pair.altdR) {
+            if (tRegisters.isEmpty()) {
+              if (sRegisters.isEmpty()) {
+                pair.spillNo = getSpilledNo();
+              } else {
+                pair.register = sRegisters.removeFirst();
+                fnMeta.sRegs.add(pair.register);
+                pair.rType = "s";
+              }
+            } else {
+              pair.register = tRegisters.removeFirst();
+              pair.rType = "t";
+            }
+            pair.altdR = true;
+          }
           if (pair.second > stmtNo && pair.first < stmtNo && (pair.spillNo == -1)) {
             if (pair.rType.equals("t") && !sRegisters.isEmpty()){
-              pair.rType = "s";
-              tRegisters.addLast(pair.register);
-              pair.register = sRegisters.removeFirst();
-              fnMeta.sRegs.add(pair.register);
+              Iterator<Integer> itr = sRegisters.iterator();
+              boolean got = false;
+              while (itr.hasNext()) {
+                int regis = itr.next();
+                if (!sregUses.containsKey(regis) || sregUses.get(regis) < pair.first) {
+        
+        // if (stmtNo > 0 && stmtNo < 70 && debug_label.equals("Tree_Insert")) {
+        //   System.out.println("------------------------------------------------------------------------------");
+        //   System.out.println("got "+pair.register+" s"+regis+" "+keyval);
+        // }
+                  got = true;
+                  pair.rType = "s";
+                  tRegisters.addLast(pair.register);
+                  sRegisters.remove(new Integer(regis));
+                  pair.register = regis;
+                  // pair.register = sRegisters.removeFirst();
+                  fnMeta.sRegs.add(pair.register);
+                  break;
+                }
+              }
+              if (!got) {
+                llist.add(pair.register);
+              }
             } else {
               llist.add(pair.register);
             }
-          }
+          } 
+          // else if (debug_label.equals("Tree_Insert")){
+          //   System.out.println(" "+ keyval+" ");
+          // }
         }
         if (llist.size() > fnMeta.space) {
           fnMeta.space = llist.size();
         }
         fnMeta.tRegs.put(stmtNo, llist);
+        // if (stmtNo > 0 && stmtNo < 70 && debug_label.equals("Tree_Insert")) {
+        //   System.out.println("------------------------------------------------------------------------------");
+        //   System.out.println(llist.toString());
+        // }
       } else {
         paramList.clear();
         n.f3.accept(this,(A)(new Integer(5)));
@@ -595,20 +703,20 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
         }
         tStore.clear();
         Iterator<Integer> it;
-        int bsize = fnMeta.spillMax;
+        int bsize = fnMeta.spillMax + fnMeta.sRegs.size();
         it = fnMeta.tRegs.get(stmtNo).iterator();
         int x;
         while (it.hasNext()) {
           ++bsize;
           x = it.next();
-          System.out.println("ASTORE SPILLEDARG "+bsize+" "+x);
+          System.out.println("ASTORE SPILLEDARG "+bsize+" t"+x);
           tStore.put(x, bsize);
         }
         System.out.println("CALL "+tm);
         it = tStore.keySet().iterator();
         while (it.hasNext()) {
           x = it.next();
-          System.out.println("ALOAD t"+x+" "+tStore.get(x));
+          System.out.println("ALOAD t"+x+" SPILLEDARG "+tStore.get(x));
           tStore.put(x, bsize);
         }
       }
@@ -631,8 +739,8 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
           if (pair.spillNo == -1) {
             reg_tm = pair.rType+pair.register;
           } else {
-            System.out.println("ALOAD v1 SPILLEDARG "+pair.spillNo);
-            reg_tm = "v1";
+            System.out.println("ALOAD v0 SPILLEDARG "+pair.spillNo);
+            reg_tm = "v0";
           }
           val += reg_tm; 
         } else {
@@ -659,12 +767,12 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
         if (pair_temp.spillNo == -1) {
           reg_temp = pair_temp.rType+pair_temp.register;
         } else {
-          System.out.println("ALOAD v1 SPILLEDARG "+pair_temp.spillNo);
+          System.out.println("ALOAD v0 SPILLEDARG "+pair_temp.spillNo);
           reg_temp = "v0";
         }
         String reg_tm;
-        if (currMap.containsKey(tm)) {
-          Pair pair = currMap.get(tm);
+        if (currMap.containsKey(temp)) {
+          Pair pair = currMap.get(temp);
           if (pair.spillNo == -1) {
             reg_tm = pair.rType+pair.register;
           } else {
@@ -672,12 +780,16 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
             reg_tm = "v1";
           } 
         } else {
-          reg_tm = tm;
+          reg_tm = temp;
         }
         if (ops.equals("LE")){
           ops = "LT";
+          System.out.println("MOVE "+reg_temp+" MINUS "+ reg_temp+" 1");
+          ltOps = true;
+          leftOp = reg_temp;
         }
         String retval = ops+" "+reg_temp+" "+reg_tm;
+        _ret = (R)retval;
       }
       return _ret;
    }
@@ -712,7 +824,7 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
           if (pair.spillNo == -1) {
             reg = pair.rType+pair.register;
           } else {
-            System.out.println("ASTORE v1 SPILLEDARG "+pair.spillNo);
+            System.out.println("ALOAD v1 SPILLEDARG "+pair.spillNo);
             reg = "v1";
           }
           temp = reg;
@@ -743,6 +855,8 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
         ++totalArg;
         if (currMap.containsKey(temp)) {
             currMap.get(temp).second = stmtNo;
+        } else {
+          currMap.put(temp, new Pair(stmtNo));
         }
       } else if ((Integer)argu == 1) {
         Pair pair = currMap.get(temp);
@@ -765,6 +879,7 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
           if (pair.spillNo == -1) { //return registers
             if (pair.rType.equals("s")) {
               sRegisters.addFirst(pair.register);
+              sregUses.put(pair.register,stmtNo);
             } else {
               tRegisters.addLast(pair.register);
             }
@@ -873,6 +988,6 @@ class Pair{
     } else {
       temp = "sp"+spillNo;
     }
-    return "("+first+","+second+","+temp+")";
+    return "("+first+","+second+","+temp+")\n";
   }
 }
