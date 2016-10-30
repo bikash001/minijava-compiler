@@ -352,22 +352,22 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
       if ((Integer)argu == 0) {
         gotos.put(stmtNo, lb);
       } else if ((Integer)argu == 1) {
-        Iterator itr = currMap.keySet().iterator();
-        while (itr.hasNext()) {
-          Pair pair = currMap.get(itr.next());
-          if (pair.second == stmtNo) {
-            if (pair.spillNo == -1) { //return registers
-              if (pair.rType.equals("s")) {
-                sRegisters.addFirst(pair.register);
-                sregUses.put(pair.register,stmtNo);
-              } else {
-                tRegisters.addLast(pair.register);
-              }
-            } else {
-              spillList.add(pair.spillNo);
-            }
-          }
-        }
+        // Iterator itr = currMap.keySet().iterator();
+        // while (itr.hasNext()) {
+        //   Pair pair = currMap.get(itr.next());
+        //   if (pair.second == stmtNo) {
+        //     if (pair.spillNo == -1) { //return registers
+        //       if (pair.rType.equals("s")) {
+        //         sRegisters.addFirst(pair.register);
+        //         sregUses.put(pair.register,stmtNo);
+        //       } else {
+        //         tRegisters.addLast(pair.register);
+        //       }
+        //     } else {
+        //       spillList.add(pair.spillNo);
+        //     }
+        //   }
+        // }
       } else if ((Integer)argu == 2) {
         Pair pair = currMap.get(tm);
         String reg = "";
@@ -393,22 +393,22 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
       if ((Integer)argu == 0) {
         gotos.put(stmtNo, lb);
       } else if ((Integer)argu == 1) {
-        Iterator itr = currMap.keySet().iterator();
-        while (itr.hasNext()) {
-          Pair pair = currMap.get(itr.next());
-          if (pair.second == stmtNo) {
-            if (pair.spillNo == -1) { //return registers
-              if (pair.rType.equals("s")) {
-                sRegisters.addFirst(pair.register);
-                sregUses.put(pair.register,stmtNo);
-              } else {
-                tRegisters.addLast(pair.register);
-              }
-            } else {
-              spillList.add(pair.spillNo);
-            }
-          }
-        }
+        // Iterator itr = currMap.keySet().iterator();
+        // while (itr.hasNext()) {
+        //   Pair pair = currMap.get(itr.next());
+        //   if (pair.second == stmtNo) {
+        //     if (pair.spillNo == -1) { //return registers
+        //       if (pair.rType.equals("s")) {
+        //         sRegisters.addFirst(pair.register);
+        //         sregUses.put(pair.register,stmtNo);
+        //       } else {
+        //         tRegisters.addLast(pair.register);
+        //       }
+        //     } else {
+        //       spillList.add(pair.spillNo);
+        //     }
+        //   }
+        // }
       } else if ((Integer)argu == 2) {
         System.out.println("JUMP "+lb);
       }
@@ -635,31 +635,29 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
             pair.altdR = true;
           }
           if (pair.second > stmtNo && pair.first < stmtNo && (pair.spillNo == -1)) {
-            if (pair.rType.equals("t") && !sRegisters.isEmpty()){
-              Iterator<Integer> itr = sRegisters.iterator();
-              boolean got = false;
-              while (itr.hasNext()) {
-                int regis = itr.next();
-                if (!sregUses.containsKey(regis) || sregUses.get(regis) < pair.first) {
-        
-        // if (stmtNo > 0 && stmtNo < 70 && debug_label.equals("Tree_Insert")) {
-        //   System.out.println("------------------------------------------------------------------------------");
-        //   System.out.println("got "+pair.register+" s"+regis+" "+keyval);
-        // }
-                  got = true;
-                  pair.rType = "s";
-                  tRegisters.addLast(pair.register);
-                  sRegisters.remove(new Integer(regis));
-                  pair.register = regis;
-                  // pair.register = sRegisters.removeFirst();
-                  fnMeta.sRegs.add(pair.register);
-                  break;
-                }
-              }
-              if (!got) {
-                llist.add(pair.register);
-              }
-            } else {
+            // if (pair.rType.equals("t") && !sRegisters.isEmpty()){
+            //   Iterator<Integer> itr = sRegisters.iterator();
+            //   boolean got = false;
+            //   while (itr.hasNext()) {
+            //     int regis = itr.next();
+            //     if (!sregUses.containsKey(regis) || sregUses.get(regis) < pair.first) {
+            //       got = true;
+            //       pair.rType = "s";
+            //       tRegisters.addLast(pair.register);
+            //       sRegisters.remove(new Integer(regis));
+            //       pair.register = regis;
+            //       // pair.register = sRegisters.removeFirst();
+            //       fnMeta.sRegs.add(pair.register);
+            //       break;
+            //     }
+            //   }
+            //   if (!got) {
+            //     llist.add(pair.register);
+            //   }
+            // } else {
+            //   llist.add(pair.register);
+            // }
+            if (pair.rType.equals("t")) {//debugging
               llist.add(pair.register);
             }
           } 
@@ -875,18 +873,18 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
           }
           pair.altdR = true;
         }
-        if (pair.second == stmtNo) {
-          if (pair.spillNo == -1) { //return registers
-            if (pair.rType.equals("s")) {
-              sRegisters.addFirst(pair.register);
-              sregUses.put(pair.register,stmtNo);
-            } else {
-              tRegisters.addLast(pair.register);
-            }
-          } else {
-            spillList.add(pair.spillNo);
-          }
-        }
+        // if (pair.second == stmtNo) {
+        //   if (pair.spillNo == -1) { //return registers
+        //     if (pair.rType.equals("s")) {
+        //       sRegisters.addFirst(pair.register);
+        //       sregUses.put(pair.register,stmtNo);
+        //     } else {
+        //       tRegisters.addLast(pair.register);
+        //     }
+        //   } else {
+        //     spillList.add(pair.spillNo);
+        //   }
+        // }
       } else if ((Integer)argu == 5) {
         paramList.add(temp);
       }
