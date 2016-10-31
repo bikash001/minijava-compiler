@@ -30,7 +30,6 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
     private LinkedList<Integer> sRegisters; //available s registers
     private PriorityQueue<Integer> spillList; //available spill positions
     private int totalArg; //total arguments in the function call
-    private String[] vRegs; //temporary using the v registers
     private int params; //formal paramater in a procedure
     private ArrayList<String> paramList;
     private HashMap<String,Integer> labels;
@@ -58,7 +57,6 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
   public GJDepthFirst() {
     fnList = new HashMap<String,FuncMeta>();
     tRegisters = new LinkedList<Integer>();
-    vRegs = new String[]{"", ""};
     paramList = new ArrayList<String>();
     labels = new HashMap<String,Integer>();
     gotos = new HashMap<Integer,String>();
@@ -614,6 +612,9 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
       } else if ((Integer)argu == 1){
         n.f3.accept(this, argu);
         HashSet<Integer> llist = new HashSet<Integer>();
+        for (int i=0; i<10; ++i) {
+          llist.add(i);
+        }
         Iterator it = currMap.keySet().iterator();
         Pair pair;
         while (it.hasNext()) {
@@ -657,9 +658,9 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
             // } else {
             //   llist.add(pair.register);
             // }
-            if (pair.rType.equals("t")) {//debugging
-              llist.add(pair.register);
-            }
+            // if (pair.rType.equals("t")) {//debugging
+            //   llist.add(pair.register);
+            // }
           } 
           // else if (debug_label.equals("Tree_Insert")){
           //   System.out.println(" "+ keyval+" ");
@@ -785,6 +786,8 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
           System.out.println("MOVE "+reg_temp+" MINUS "+ reg_temp+" 1");
           ltOps = true;
           leftOp = reg_temp;
+        } else if (ops.equals("NE")) {
+          ops = "MINUS";
         }
         String retval = ops+" "+reg_temp+" "+reg_tm;
         _ret = (R)retval;
@@ -930,21 +933,21 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
    }
 
    private void liveAnalysis() {
-      Integer[] lids = gotos.keySet().toArray(new Integer[0]);
-      Arrays.sort(lids);
-      Set keys = currMap.keySet();
-      for (int i=0; i<lids.length; ++i) {
-        int last = labels.get(gotos.get(lids[i]));
-        if (last < lids[i]) {
-          Iterator it = keys.iterator();
-          while (it.hasNext()) {
-            Pair p = currMap.get(it.next());
-            if ( p.second < lids[i] && p.second >= last) {
-              p.second = lids[i];
-            }
-          }
-        }
-      }
+      // Integer[] lids = gotos.keySet().toArray(new Integer[0]);
+      // Arrays.sort(lids);
+      // Set keys = currMap.keySet();
+      // for (int i=0; i<lids.length; ++i) {
+      //   int last = labels.get(gotos.get(lids[i]));
+      //   if (last < lids[i]) {
+      //     Iterator it = keys.iterator();
+      //     while (it.hasNext()) {
+      //       Pair p = currMap.get(it.next());
+      //       if ( p.second < lids[i] && p.second >= last) {
+      //         p.second = lids[i];
+      //       }
+      //     }
+      //   }
+      // }
    }
 }
 
