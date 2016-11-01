@@ -2,3 +2,5 @@
 Main.java
 *.jar
 *.jj
+Input/
+Output/
