@@ -344,9 +344,9 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
       R _ret=null;
       n.f0.accept(this, argu);
       String lt = (String)n.f1.accept(this, argu);
-      int var = (Integer.valueOf(lt) - 1) * 4 + 8;
+      int var = (Integer.valueOf(lt) - 1) * 4 + 12;
       String reg = (String)n.f2.accept(this, argu);
-      System.out.println("\tsw $"+reg+", "+var+"($sp)");
+      System.out.println("\tsw $"+reg+", -"+var+"($sp)");
       return _ret;
    }
 
