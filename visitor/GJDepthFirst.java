@@ -419,6 +419,24 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
       	opType = "mul";
       } else if (ops.equals("DIV")) {
       	opType = "div";
+      } else if (ops.equals("BITOR")) {
+      	opType = "or";
+      } else if (ops.equals("BITAND")) {
+      	opType = "and";
+      } else if (ops.equals("BITXOR")) {
+      	opType = "xor";
+      } else if (ops.equals("LSHIFT")) {
+      	if (expType == 1) {
+      		opType = "sllv";
+      	} else {
+      		opType = "sll";
+      	}
+      } else if (ops.equals("RSHIFT")) {
+        if (expType == 1) {
+          opType = "srlv";
+        } else {
+          opType = "srl";
+        }
       }
       expType = 3;
       return _ret;
