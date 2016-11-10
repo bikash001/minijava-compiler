@@ -410,7 +410,11 @@ public class GJDepthFirst<R,A> implements GJVisitor<R,A> {
       }
       moveVal = "$"+reg+", "+exp;
       if (ops.equals("LT")) {
-      	opType = "slt";
+        if (expType == 1){
+      	 opType = "slt";
+        } else {
+          opType = "slti";
+        }
       } else if (ops.equals("PLUS")) {
       	opType = "add";
       } else if (ops.equals("MINUS")) {
